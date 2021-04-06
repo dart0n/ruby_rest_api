@@ -1,9 +1,11 @@
+require "./users_service.rb"
+
 class UsersController
   def self.create(req)
-
+    UsersService.create(req[:body])
   end
 
   def self.index
-    [{id: 1, firstname: "foo", lastname: "bar", year_salary: 1000}]
+    UsersService.getUsers
   end
 end
