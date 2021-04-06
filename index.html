@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+
+  <form id="create-user-form" action="" method="POST">
+    <p><input id="firstname" type="text" placeholder="First name"></p>
+    <p><input id="lastname" type="text" placeholder="Last name"></p>
+    <p><input id="year_salary" type="text" placeholder="Year salary"></p>
+    <button type="submit">Save user</button>
+  </form>
+
+  <hr>
+
+  <button id="load-users">Show all</button>
+  <ul id="loaded-users"></ul>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $('#create-user-form').submit(function(e) {
+      e.preventDefault()
+      const firstname = $('#firstname').val()
+      const lastname = $('#lastname').val()
+      const year_salary = $('#year_salary').val()
+
+      $.ajax({
+        url: '/api/v1/users',
+        type: 'post',
+        dataType: 'json',
+        data: JSON.stringify({ firstname, lastname, year_salary })
+      })
+    })
+
+    $('#load-users').click(function(e) {
+      $.ajax({
+        url: '/api/v1/users',
+        type: 'get',
+        success: function (data) {
+          $('#loaded-users').html(data)
+        }
+      })
+    })
+  </script>
+</body>
+</html>
