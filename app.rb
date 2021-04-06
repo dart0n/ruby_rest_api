@@ -1,5 +1,6 @@
 require "socket"
 require "json"
+require "./users_controller.rb"
 
 class RequestParser
   def parse(request)
@@ -63,7 +64,7 @@ class ResponseBuilder
     elsif request.fetch(:path) == USERS_API and request.fetch(:method) == "POST"
       send_ok_response("User created")
     elsif request.fetch(:path) == USERS_API
-      users = [{id: 1, firstname: "foo", lastname: "bar", year_salary: 1000}].to_json
+      users = UsersController.index.to_json
       send_ok_response(users)
     else
       respond_with(SERVER_ROOT + request.fetch(:path))
