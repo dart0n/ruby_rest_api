@@ -18,7 +18,7 @@
   <hr>
 
   <button id="load-users">Show all</button>
-  <ul id="loaded-users"></ul>
+  <table id="loaded-users"></table>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
@@ -41,7 +41,26 @@
         url: '/api/v1/users',
         type: 'get',
         success: function (data) {
-          $('#loaded-users').html(data)
+          $list_users = $('#loaded-users')
+          $list_users.append(
+            `<tr>
+              <th>id</th>
+              <th>first name</th>
+              <th>last name</th>
+              <th>year salary</th>
+            </tr>`
+          )
+
+          $.each(JSON.parse(data), function(i, obj) {
+            $list_users.append(
+              `<tr>
+                <td>${obj.id}</td>
+                <td>${obj.firstname}</td>
+                <td>${obj.lastname}</td>
+                <td>${obj.year_salary}</td>
+              </tr>`
+            )
+          })
         }
       })
     })
