@@ -1,5 +1,6 @@
 require "socket"
 require "json"
+require "./database.rb"
 require "./users_controller.rb"
 
 class RequestParser
@@ -9,7 +10,8 @@ class RequestParser
     {
       path: path,
       method: method,
-      headers: parse_headers(request)
+      headers: parse_headers(request),
+      body: parse_body(request)
     }
   end
 
@@ -62,6 +64,7 @@ class ResponseBuilder
     if request.fetch(:path) == "/"
       respond_with(SERVER_ROOT + "index.html")
     elsif request.fetch(:path) == USERS_API and request.fetch(:method) == "POST"
+      UsersController.create(request)
       send_ok_response("User created")
     elsif request.fetch(:path) == USERS_API
       users = UsersController.index.to_json
@@ -89,6 +92,7 @@ class ResponseBuilder
 end
 
 server = TCPServer.new 5000
+Database.connect
 
 loop do
   client = server.accept
