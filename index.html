@@ -51,7 +51,7 @@
             </tr>`
           )
 
-          $.each(JSON.parse(data), function(i, obj) {
+          JSON.parse(data).map(obj => {
             $list_users.append(
               `<tr>
                 <td>${obj.id}</td>
