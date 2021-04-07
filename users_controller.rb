@@ -1,4 +1,4 @@
-require "./users_service.rb"
+require './users_service'
 
 class UsersController
   def self.create(req)
@@ -6,6 +6,6 @@ class UsersController
   end
 
   def self.index
-    UsersService.getUsers
+    UsersService.users
   end
 end

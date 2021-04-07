@@ -1,7 +1,7 @@
-require "socket"
-require "json"
-require "./database.rb"
-require "./users_controller.rb"
+require 'socket'
+require 'json'
+require './database'
+require './users_controller'
 
 class RequestParser
   def parse(request)
@@ -22,18 +22,14 @@ class RequestParser
       return headers if line == "\r\n"
 
       header, value = line.split
-      header = header.gsub(":", "").downcase.to_sym
+      header = header.gsub(':', '').downcase.to_sym
       headers[header] = value
     end
   end
 
   def parse_body(request)
     body = {}
-
-    if request.include? "{"
-      body = JSON.parse(request[request.index("{")..-1]).transform_keys(&:to_sym)
-    end
-
+    body = JSON.parse(request[request.index('{')..-1]).transform_keys(&:to_sym) if request.include? '{'
     body
   end
 end
@@ -41,11 +37,11 @@ end
 class Response
   attr_reader :code
 
-  def initialize(code:, data: "")
+  def initialize(code:, data: '')
     @response =
-      "HTTP/1.1 #{code}\r\n" +
-      "Content-Length: #{data.size}\r\n" +
-      "\r\n" +
+      "HTTP/1.1 #{code}\r\n" \
+      "Content-Length: #{data.size}\r\n" \
+      "\r\n" \
       "#{data}\r\n"
 
     @code = code
@@ -57,15 +53,15 @@ class Response
 end
 
 class ResponseBuilder
-  SERVER_ROOT = File.join(File.dirname(__FILE__), "/")
-  USERS_API = "/api/v1/users"
+  SERVER_ROOT = File.join(File.dirname(__FILE__), '/')
+  USERS_API = '/api/v1/users'
 
   def prepare(request)
-    if request.fetch(:path) == "/"
-      respond_with(SERVER_ROOT + "index.html")
-    elsif request.fetch(:path) == USERS_API and request.fetch(:method) == "POST"
+    if request.fetch(:path) == '/'
+      respond_with("#{SERVER_ROOT}index.html")
+    elsif request.fetch(:path) == USERS_API && request.fetch(:method) == 'POST'
       UsersController.create(request)
-      send_ok_response("User created")
+      send_ok_response('User created')
     elsif request.fetch(:path) == USERS_API
       users = UsersController.index.to_json
       send_ok_response(users)
@@ -75,7 +71,7 @@ class ResponseBuilder
   end
 
   def respond_with(path)
-    if File.exists?(path)
+    if File.exist?(path)
       send_ok_response(File.binread(path))
     else
       send_file_not_found
