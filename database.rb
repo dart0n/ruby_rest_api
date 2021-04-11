@@ -18,14 +18,20 @@ class Database
 
   def self.execute_with_result(query)
     puts "DB query: #{query}"
-    data = []
     @conn.exec(query) do |result|
-      result.each do |row|
-        data << row
+      case result.num_tuples
+      when 0 then false
+      when 1
+        # return one row as hash {"id"=>"1", "firstname"=>"...", "lastname"=>"...", "year_salary"=>"..."}
+        fields = result.fields
+        values = result.values[0]
+        Hash[fields.zip values]
+      else
+        data = []
+        result.each { |row| data << row }
+        data
       end
     end
-
-    data
   rescue StandardError => e
     puts "Error: cannot execute the query: #{query}.\n#{e}"
   end
