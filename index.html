@@ -5,23 +5,71 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <style>
+    #form-sort {
+      display: none;
+      padding: 10px 0;
+    }
+    button.delete {
+      background: #ffdbcf;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      width: 30%;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-
   <form id="create-user-form" action="" method="POST">
     <p><input id="firstname" type="text" placeholder="First name"></p>
     <p><input id="lastname" type="text" placeholder="Last name"></p>
-    <p><input id="year_salary" type="text" placeholder="Year salary"></p>
+    <p><input id="year_salary" type="number" placeholder="Year salary"></p>
     <button type="submit">Save user</button>
   </form>
-
   <hr>
 
   <button id="load-users">Show all</button>
-  <table id="loaded-users"></table>
+
+  <form action="" id="form-sort">
+    Sort by:
+    <label><input type="radio" id="default" name="sort" value="default"> Default</label>
+    <label><input type="radio" id="default" name="sort" value="salary_asc"> Salary asc</label>
+    <label><input type="radio" id="default" name="sort" value="salary_desc"> Salary desc</label>
+    <label><input type="radio" id="default" name="sort" value="lastname_asc"> Last name asc</label>
+    <label><input type="radio" id="default" name="sort" value="lastname_desc"> Last name desc</label>
+  </form>
+
+  <table id="users"></table>
+
+  <div class="modal">
+    <div class="modal-content">
+      <form id="update-form" action="" method="POST">
+        <input id="update_id" type="hidden" value="">
+        <p><input id="update_firstname" type="text" value=""></p>
+        <p><input id="update_lastname" type="text" value=""></p>
+        <p><input id="update_year_salary" type="text" value=""></p>
+        <button type="submit">Update user</button>
+        <button type="button" id="close_modal">Cancel</button>
+      </form>
+    </div>
+  </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
+    const USERS_API = '/api/v1/users'
+
     $('#create-user-form').submit(function(e) {
       e.preventDefault()
       const firstname = $('#firstname').val()
@@ -37,33 +85,115 @@
     })
 
     $('#load-users').click(function(e) {
+      $('#form-sort').show()
       $.ajax({
-        url: '/api/v1/users',
+        url: USERS_API,
         type: 'get',
         success: function (data) {
-          $list_users = $('#loaded-users')
-          $list_users.append(
-            `<tr>
-              <th>id</th>
-              <th>first name</th>
-              <th>last name</th>
-              <th>year salary</th>
-            </tr>`
-          )
-
-          JSON.parse(data).map(obj => {
-            $list_users.append(
-              `<tr>
-                <td>${obj.id}</td>
-                <td>${obj.firstname}</td>
-                <td>${obj.lastname}</td>
-                <td>${obj.year_salary}</td>
-              </tr>`
-            )
-          })
+          showUsers(data)
         }
       })
     })
+
+    // Sorting
+    $('input[name="sort"]').click(function () {
+      const value = $(this).val()
+      const url = value == 'default' ? USERS_API : `${USERS_API}?sort_by=${value}`
+      rerenderUsers(url)
+    })
+
+    // Delete user
+    $('#users').on('click', 'button.delete', function () {
+      const id = $(this).parent().siblings('.id').text()
+      $.ajax({
+        url: `${USERS_API}/${id}`,
+        type: 'delete',
+        success: function () {
+          rerenderUsers()
+        },
+      })
+    })
+
+    // Update user
+    $('#users').on('click', 'button.edit', function () {
+      const id = $(this).parent().siblings('.id').text()
+      const firstname = $(this).parent().siblings('.firstname').text()
+      const lastname = $(this).parent().siblings('.lastname').text()
+      const year_salary = $(this).parent().siblings('.year_salary').text()
+      showModal(id, firstname, lastname, year_salary)
+    })
+
+    function showModal(id, firstname, lastname, year_salary) {
+      $('.modal').show()
+      $('#update_id').val(id)
+      $('#update_firstname').val(firstname)
+      $('#update_lastname').val(lastname)
+      $('#update_year_salary').val(year_salary)
+    }
+
+    // Send updated data
+    $('#update-form').submit(function (e) {
+      e.preventDefault()
+      const id = $('#update_id').val()
+      const firstname = $('#update_firstname').val()
+      const lastname = $('#update_lastname').val()
+      const year_salary = $('#update_year_salary').val()
+
+      $.ajax({
+        url: `${USERS_API}/${id}`,
+        type: 'put',
+        contentType: 'application/json',
+        data: JSON.stringify({ firstname, lastname, year_salary }),
+        success: function () {
+          $('.modal').hide()
+          rerenderUsers()
+        },
+      })
+    })
+
+    $('#close_modal').click(function () {
+      $('.modal').hide()
+    })
+
+    function rerenderUsers(url = USERS_API) {
+      $('#users').empty()
+      getUsers(url)
+    }
+
+    function getUsers(url = USERS_API) {
+      $.ajax({
+        url: url,
+        type: 'get',
+        success: function (data) {
+          showUsers(data)
+        },
+      })
+    }
+
+    function showUsers(data) {
+      $table_users = $('#users')
+      $table_users.append(
+        `<tr>
+          <th>id</th>
+          <th>first name</th>
+          <th>last name</th>
+          <th>year salary</th>
+          <th>actions</th>
+        </tr>`
+      )
+      JSON.parse(data).map(obj => {
+        $table_users.append(
+          `<tr>
+            <td class="id">${obj.id}</td>
+            <td class="firstname">${obj.firstname}</td>
+            <td class="lastname">${obj.lastname}</td>
+            <td class="year_salary">${obj.year_salary}</td>
+            <td><button class="edit">Edit</button>
+            <td><button class="delete">Delete</button>
+          </tr>`
+        )
+      })
+    }
   </script>
 </body>
 </html>
