@@ -1,7 +1,7 @@
 require 'socket'
 require 'json'
+require './response'
 require './database'
-require './users_controller'
 
 class RequestParser
   def parse(request)
@@ -31,59 +31,6 @@ class RequestParser
     body = {}
     body = JSON.parse(request[request.index('{')..-1]).transform_keys(&:to_sym) if request.include? '{'
     body
-  end
-end
-
-class Response
-  attr_reader :code
-
-  def initialize(code:, data: '')
-    @response =
-      "HTTP/1.1 #{code}\r\n" \
-      "Content-Length: #{data.size}\r\n" \
-      "\r\n" \
-      "#{data}\r\n"
-
-    @code = code
-  end
-
-  def send(client)
-    client.write(@response)
-  end
-end
-
-class ResponseBuilder
-  SERVER_ROOT = File.join(File.dirname(__FILE__), '/')
-  USERS_API = '/api/v1/users'
-
-  def prepare(request)
-    if request.fetch(:path) == '/'
-      respond_with("#{SERVER_ROOT}index.html")
-    elsif request.fetch(:path) == USERS_API && request.fetch(:method) == 'POST'
-      UsersController.create(request)
-      send_ok_response('User created')
-    elsif request.fetch(:path) == USERS_API
-      users = UsersController.index.to_json
-      send_ok_response(users)
-    else
-      respond_with(SERVER_ROOT + request.fetch(:path))
-    end
-  end
-
-  def respond_with(path)
-    if File.exist?(path)
-      send_ok_response(File.binread(path))
-    else
-      send_file_not_found
-    end
-  end
-
-  def send_ok_response(data)
-    Response.new(code: 200, data: data)
-  end
-
-  def send_file_not_found
-    Response.new(code: 404)
   end
 end
 
