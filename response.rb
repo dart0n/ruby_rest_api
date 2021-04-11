@@ -1,3 +1,5 @@
+require './users/users_controller'
+
 class Response
   attr_reader :code
 

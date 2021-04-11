@@ -1,4 +1,4 @@
-require './users_repository'
+require_relative './users_repository'
 
 class UsersService
   def self.create(data)

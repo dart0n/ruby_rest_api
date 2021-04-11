@@ -1,4 +1,4 @@
-require './users_service'
+require_relative './users_service'
 
 class UsersController
   def self.create(req)
