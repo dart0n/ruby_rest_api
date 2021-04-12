@@ -5,7 +5,7 @@ class UsersRepostory
 
   def self.create(firstname, lastname, year_salary)
     Database.execute_with_result(
-      "insert into #{@table} (firstname, lastname, year_salary)" \
+      "insert into #{@table} (firstname, lastname, year_salary) " \
       "values ('#{firstname}', '#{lastname}', #{year_salary}) returning *"
     )
   end
