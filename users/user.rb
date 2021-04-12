@@ -17,7 +17,7 @@ class User
     UsersRepostory.create(firstname, lastname, year_salary)
   end
 
-  def update(id, firstname, lastname, year_salary)
+  def self.update(id, firstname, lastname, year_salary)
     UsersRepostory.update(id, firstname, lastname, year_salary)
   end
 
