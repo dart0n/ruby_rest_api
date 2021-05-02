@@ -172,8 +172,8 @@
         type: 'get',
         success: function (data) {
           const parsedData = JSON.parse(data)
-          users = parsedData
-          showUsers(parsedData)
+          users = parsedData instanceof Array ? parsedData : [parsedData]
+          showUsers(users)
         },
       })
     }
