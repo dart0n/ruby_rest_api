@@ -1,5 +1,5 @@
 class Request
-  def parse(request)
+  def self.parse(request)
     method, path = request.lines[0].split # GET /
 
     {
@@ -10,7 +10,7 @@ class Request
     }
   end
 
-  def parse_headers(request)
+  def self.parse_headers(request)
     headers = {}
 
     request.lines[1..-1].each do |line|
@@ -22,7 +22,7 @@ class Request
     end
   end
 
-  def parse_body(request)
+  def self.parse_body(request)
     body = {}
     body = JSON.parse(request[request.index('{')..-1]).transform_keys(&:to_sym) if request.include? '{'
     body

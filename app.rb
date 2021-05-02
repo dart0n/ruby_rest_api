@@ -10,7 +10,7 @@ loop do
   client = server.accept
   request = client.readpartial(2048)
 
-  request = Request.new.parse(request)
+  request = Request.parse(request)
   response = ResponseBuilder.new.prepare(request)
 
   puts "#{request.fetch(:method)} #{request.fetch(:path)} #{response.code}"
