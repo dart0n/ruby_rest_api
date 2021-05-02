@@ -44,11 +44,11 @@
 
   <form action="" id="form-sort">
     Sort by:
-    <label><input type="radio" id="default" name="sort" value="default"> Default</label>
-    <label><input type="radio" id="default" name="sort" value="salary_asc"> Salary asc</label>
-    <label><input type="radio" id="default" name="sort" value="salary_desc"> Salary desc</label>
-    <label><input type="radio" id="default" name="sort" value="lastname_asc"> Last name asc</label>
-    <label><input type="radio" id="default" name="sort" value="lastname_desc"> Last name desc</label>
+    <label><input type="radio" name="sort" value="default" checked> Default</label>
+    <label><input type="radio" name="sort" value="salary_asc"> Salary asc</label>
+    <label><input type="radio" name="sort" value="salary_desc"> Salary desc</label>
+    <label><input type="radio" name="sort" value="lastname_asc"> Last name asc</label>
+    <label><input type="radio" name="sort" value="lastname_desc"> Last name desc</label>
   </form>
 
   <table id="users"></table>
@@ -69,6 +69,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     const USERS_API = '/api/v1/users'
+    let users = []
 
     $('#create-user-form').submit(function(e) {
       e.preventDefault()
@@ -77,29 +78,26 @@
       const year_salary = $('#year_salary').val()
 
       $.ajax({
-        url: '/api/v1/users',
+        url: USERS_API,
         type: 'post',
-        dataType: 'json',
+        contentType: 'application/json',
         data: JSON.stringify({ firstname, lastname, year_salary })
       })
     })
 
     $('#load-users').click(function(e) {
       $('#form-sort').show()
-      $.ajax({
-        url: USERS_API,
-        type: 'get',
-        success: function (data) {
-          showUsers(data)
-        }
-      })
+      getUsers()
     })
 
     // Sorting
     $('input[name="sort"]').click(function () {
       const value = $(this).val()
-      const url = value == 'default' ? USERS_API : `${USERS_API}?sort_by=${value}`
-      rerenderUsers(url)
+      if (value === 'default') {
+        getUsers()
+      } else {
+        getUsers(`${USERS_API}?sort_by=${value}`)
+      }
     })
 
     // Delete user
@@ -109,6 +107,8 @@
         url: `${USERS_API}/${id}`,
         type: 'delete',
         success: function () {
+          const found_index = users.findIndex(i => i.id === id)
+          users.splice(found_index, 1)
           rerenderUsers()
         },
       })
@@ -146,6 +146,9 @@
         data: JSON.stringify({ firstname, lastname, year_salary }),
         success: function () {
           $('.modal').hide()
+          const found_user = users.find(i => i.id === id)
+          const found_index = users.findIndex(i => i.id === id)
+          users[found_index] = { ...found_user, firstname, lastname, year_salary }
           rerenderUsers()
         },
       })
@@ -157,7 +160,10 @@
 
     function rerenderUsers(url = USERS_API) {
       $('#users').empty()
-      getUsers(url)
+      if (url !== USERS_API) {
+        return getUsers(url)
+      }
+      showUsers(users)
     }
 
     function getUsers(url = USERS_API) {
@@ -165,12 +171,15 @@
         url: url,
         type: 'get',
         success: function (data) {
-          showUsers(data)
+          const parsedData = JSON.parse(data)
+          users = parsedData
+          showUsers(parsedData)
         },
       })
     }
 
     function showUsers(data) {
+      $('#users').empty()
       $table_users = $('#users')
       $table_users.append(
         `<tr>
@@ -181,7 +190,7 @@
           <th>actions</th>
         </tr>`
       )
-      JSON.parse(data).map(obj => {
+      data.map(obj => {
         $table_users.append(
           `<tr>
             <td class="id">${obj.id}</td>
