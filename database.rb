@@ -11,7 +11,7 @@ class Database
 
   def self.execute(query)
     puts "DB query: #{query}"
-    @conn.exec(query)
+    @conn.exec(query) #глянь на метод exec_params — он предотвращает sql инъекции
   rescue StandardError => e
     puts "Error: cannot execute the query: #{query}.\n#{e}"
   end
